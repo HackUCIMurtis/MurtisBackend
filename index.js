@@ -2,7 +2,10 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require('cors');
 
+// routes
 const guides = require("./routes/guides");
+const search = require("./routes/search");
+const createLink = require("./routes/creatLink.js");
 
 // environment file
 require("dotenv").config();
@@ -44,6 +47,8 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 app.use("./api", guides);
+app.use("./api", search);
+app.use("./api", createLink);
 
 app.listen(port, () => {
     console.log(`Murtis API listening on port ${port}`);
