@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require('cors');
 
-const api = require("./routes/api");
+const guides = require("./routes/guides");
 
 // environment file
 require("dotenv").config();
@@ -15,7 +15,7 @@ const app = express();
 const port = process.env.port || 3000;
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
 
@@ -43,7 +43,7 @@ firebase.initializeApp(firebaseConfig);
 // Initialize our DB
 const db = firebase.firestore();
 
-app.use("./api", api);
+app.use("./api", guides);
 
 app.listen(port, () => {
     console.log(`Murtis API listening on port ${port}`);
