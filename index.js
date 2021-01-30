@@ -2,6 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require('cors');
 
+const api = require("./routes/api");
+
 // environment file
 require("dotenv").config();
 
@@ -41,6 +43,7 @@ firebase.initializeApp(firebaseConfig);
 // Initialize our DB
 const db = firebase.firestore();
 
+app.use("./api", api);
 
 app.listen(port, () => {
     console.log(`Murtis API listening on port ${port}`);
