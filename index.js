@@ -88,7 +88,7 @@ app.post("/guides", async (req, res) => {
 });
 
 
-app.get("/api/search", async (req, res) => {
+app.get("/search", async (req, res) => {
     try {
         const keyword = req.query.keyword;
         const docRef = db.collection('guides');
@@ -115,7 +115,7 @@ app.get("/api/search", async (req, res) => {
 
 
 
-app.post("/api/createLink", async (req, res) => {
+app.post("/createLink", async (req, res) => {
     try {
         const groupsDoc = db.collection('guides');
         const doc = await groupsDoc
@@ -141,7 +141,7 @@ app.post("/api/createLink", async (req, res) => {
 });
 
 
-app.post("/api/likeGuide", async (req, res) => {
+app.post("/likeGuide", async (req, res) => {
     try {
         const docRef = db.collection('users').doc(req.query.email);
         const userSnapshot = await docRef.get();
