@@ -58,7 +58,6 @@ app.post("/login", async(req, res) =>{
 
 app.post("/guides", async (req, res) => {
     try {
-        console.log("AFDFDFDSFFDSDFFSFDFFDFFDFD")
         const userEmail = req.body.email;
         const docRef = db.collection('users').doc(userEmail);
         console.log(userEmail);
@@ -140,6 +139,21 @@ app.post("/api/createLink", async (req, res) => {
         res.status(500).send(e);
     }
 });
+
+
+app.post("/api/likeGuide", async (req, res) => {
+    try {
+        const docRef = db.collection('users').doc(req.query.email);
+        const userSnapshot = await docRef.get();
+        const { likes } = userSnapshot.data();
+        const unionRes = await docRef.set({
+            likes: [...likes, req.query.uuid]
+        });
+        res.status(200).send({id: req.query.uuid});
+    } catch (e) {
+        res.status(500).send(e);
+    }
+})
 
 
 app.listen(port, () => {
