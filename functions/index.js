@@ -1,3 +1,12 @@
+const functions = require("firebase-functions");
+
+// // Create and Deploy Your First Cloud Functions
+// // https://firebase.google.com/docs/functions/write-firebase-functions
+//
+// exports.helloWorld = functions.https.onRequest((request, response) => {
+//   functions.logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require('cors');
@@ -10,7 +19,7 @@ require("firebase/auth");
 require("firebase/firestore");
 
 const app = express();
-const port = process.env.port || 4000;
+const port = process.env.port || 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -36,56 +45,10 @@ firebase.initializeApp(firebaseConfig);
 // Initialize our DB
 const db = firebase.firestore();
 
-app.post("/login", async(req, res) =>{
-    console.log("POST /login");
-    try{
-        firebase.auth().signInWithEmailAndPassword(req.body.email, req.body.password)
-            .then((userCredential) => {
-                // Signed in
-                var user = userCredential.user;
-                res.status(200).send(user);
-            })
-            .catch((error) => {
-                var errorCode = error.code;
-                var errorMessage = error.message;
-                res.status(500).send(errorMessage)
-        });
-
-    }
-    catch (e){
-        res.status(500).send(e);
-    }
-})
-
-app.post("/registerUser", async (req, res) => {
-    console.log("POST /registerUser", req.body.email, req.body.password);
-    try{
-      firebase.auth().createUserWithEmailAndPassword(req.body.email, req.body.password)
-        .then((userCredential) => {
-          const userDoc = db.collection('users').doc(req.body.email).set({
-            guides: [],
-            likes: [],
-            password: req.body.password
-          });
-          res.status(200).send("Success")
-        })
-        .catch((error) => {
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          console.log("Error creating user: ", errorMessage);
-        });
-    }
-    catch (e){
-        res.status(500).send(e);
-    }
-})
-
-app.post("/guides", async (req, res) => {
-    console.log("POST /guides");
+app.get("/api/guides", async (req, res) => {
     try {
-        const userEmail = req.body.email;
+        const userEmail = req.query.email;
         const docRef = db.collection('users').doc(userEmail);
-        console.log(userEmail);
         const userSnapshot = await docRef.get();
         if (!userSnapshot.exists) {
             res.status(404).send(`user ${userEmail} doesn't exist`);
@@ -105,7 +68,6 @@ app.post("/guides", async (req, res) => {
                 userData.likes.push(doc.data());
             }
         })
-        console.log(userData);
         res.status(200).send(userData);
 
     } catch (e) {
@@ -114,24 +76,18 @@ app.post("/guides", async (req, res) => {
 });
 
 
-app.post("/search", async (req, res) => {
-    console.log("GET /search");
+app.get("/api/search", async (req, res) => {
     try {
-        const keyword = req.body.keyword;
-        const email = req.body.email;
-        console.log("email", email);
-        console.log("querying", keyword);
+        const keyword = req.query.keyword;
         const docRef = db.collection('guides');
         const guidesDocs = await docRef.get();
         let guides = [];
-        let links = {};
         guidesDocs.forEach(doc => {
             let guide = {
                 uuid: doc.id,
                 data: doc.data()
             };
-            console.log(guide);
-            if (guide.data.title.toLowerCase().includes(keyword.toLowerCase())) {
+            if (guide.data.title.includes(keyword)) {
                 guides.push(guide);
             }
         });
@@ -147,7 +103,7 @@ app.post("/search", async (req, res) => {
 
 
 
-app.post("/createLink", async (req, res) => {
+app.post("/api/createLink", async (req, res) => {
     try {
         const groupsDoc = db.collection('guides');
         const doc = await groupsDoc
@@ -172,22 +128,4 @@ app.post("/createLink", async (req, res) => {
     }
 });
 
-
-app.post("/likeGuide", async (req, res) => {
-    try {
-        const docRef = db.collection('users').doc(req.query.email);
-        const userSnapshot = await docRef.get();
-        const { likes } = userSnapshot.data();
-        const unionRes = await docRef.set({
-            likes: [...likes, req.query.uuid]
-        });
-        res.status(200).send({id: req.query.uuid});
-    } catch (e) {
-        res.status(500).send(e);
-    }
-})
-
-
-app.listen(port, () => {
-    console.log(`Murtis API listening on port ${port}`);
-})
+exports.app = functions.https.onRequest(app);
