@@ -10,7 +10,7 @@ require("firebase/auth");
 require("firebase/firestore");
 
 const app = express();
-const port = process.env.port || 3000;
+const port = process.env.port || 4000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -36,10 +36,32 @@ firebase.initializeApp(firebaseConfig);
 // Initialize our DB
 const db = firebase.firestore();
 
-app.get("/api/guides", async (req, res) => {
+app.post("/login", async(req, res) =>{
+    try{
+        firebase.auth().signInWithEmailAndPassword(req.body.email, req.body.password)
+            .then((userCredential) => {
+                // Signed in
+                var user = userCredential.user;
+                res.status(200).send(user);
+            })
+            .catch((error) => {
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                res.status(500).send(errorMessage)
+            });
+
+    }
+    catch (e){
+        res.status(500).send(e);
+    }
+})
+
+app.post("/guides", async (req, res) => {
     try {
-        const userEmail = req.query.email;
+        console.log("AFDFDFDSFFDSDFFSFDFFDFFDFD")
+        const userEmail = req.body.email;
         const docRef = db.collection('users').doc(userEmail);
+        console.log(userEmail);
         const userSnapshot = await docRef.get();
         if (!userSnapshot.exists) {
             res.status(404).send(`user ${userEmail} doesn't exist`);
